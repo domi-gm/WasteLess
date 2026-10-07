@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wasteless — Smart Fridge Kitchen Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+
+    --forest:#163a23;
+    --forest-deep:#0d2416;
+    --forest-light:#235835;
+    --forest-soft:#eaf3ec;
+    --forest-border:rgba(22, 58, 35, 0.16);
+    --cream:#f2f5f1;
+    --paper:#ffffff;
+    --ink:#17221a;
+    --ink-soft:#4a594e;
+    --line:#e0e7e1;
+    --line-subtle:#edf2ee;
+    
+    /* Freshness indicators */
+    --ok:#1f7a39;
+    --ok-bg:#e8f6ec;
+    --warn:#b86508;
+    --warn-bg:#fef3e3;
+    --danger:#b52929;
+    --danger-bg:#fdeced;
+    
+    --btn-bg:#163a23;
+    --btn-hover:#0d2416;
+    --btn-text:#ffffff;
+
+    --radius:18px;
+    --shadow:0 8px 24px rgba(13, 36, 22, 0.05);
+    --shadow-hover:0 14px 32px rgba(13, 36, 22, 0.10);
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    background-color:#f1f5f0;
+    background-image:
+      radial-gradient(at 0% 0%, rgba(35, 88, 53, 0.18) 0px, transparent 55%),
+      radial-gradient(at 100% 0%, rgba(22, 70, 38, 0.15) 0px, transparent 50%),
+      radial-gradient(at 50% 40%, rgba(245, 249, 244, 0.85) 0px, transparent 100%),
+      radial-gradient(at 100% 100%, rgba(28, 80, 46, 0.14) 0px, transparent 55%),
+      radial-gradient(at 0% 100%, rgba(42, 102, 60, 0.15) 0px, transparent 50%);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  /* Decorative Leaves in Margins */
+  .botanical-bg{
+    position:fixed;
+    pointer-events:none;
+    z-index:0;
+    opacity:0.22;
+  }
+  .leaf-top-right{
+    top:-30px;
+    right:-40px;
+    width:320px;
+    transform:rotate(15deg);
+  }
+  .leaf-bottom-left{
+    bottom:-40px;
+    left:-50px;
+    width:340px;
+    transform:rotate(-20deg);
+  }
+
+  h1,h2,h3{
+    font-family:'Fraunces',Georgia,serif;
+    font-weight:600;
+    color:var(--forest-deep);
+    margin:0;
+  }
+
+  .wrap{
+    max-width:960px;
+    margin:0 auto;
+    padding:40px 20px 96px;
+    position:relative;
+    z-index:1;
+  }
+
+  /* Layered Hero Card */
+  header.hero{
+    background:rgba(255, 255, 255, 0.88);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border:1px solid var(--forest-border);
+    border-radius:24px;
+    padding:28px 32px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:20px;
+    box-shadow:var(--shadow);
+    margin-bottom:38px;
+    flex-wrap:wrap;
+  }
+  .hero-titles h1{
+    font-size:clamp(34px,4.5vw,46px);
+    letter-spacing:-0.02em;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .hero-titles p{
+    max-width:52ch;
+    color:var(--ink-soft);
+    font-size:15px;
+    margin:6px 0 0;
+  }
+  .hero-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .status-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:8px 16px;
+    border-radius:999px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+    box-shadow:0 2px 6px rgba(0,0,0,0.03);
+  }
+  .dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#22c55e;
+    box-shadow:0 0 0 2px rgba(34, 197, 94, 0.22);
+    animation:pulse 2s infinite;
+  }
+  @keyframes pulse{
+    0% { transform: scale(0.95); opacity: 0.85; }
+    50% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.85; }
+  }
+
+  section{margin-bottom:48px;}
+
+  /* Section Headings */
+  .section-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .section-head h2{
+    font-size:24px;
+    letter-spacing:-0.01em;
+  }
+  .section-head .actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+
+  .btn{
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+    border-radius:999px;
+    padding:10px 22px;
+    background:var(--btn-bg);
+    color:var(--btn-text);
+    border:1px solid var(--btn-bg);
+    cursor:pointer;
+    transition:transform .08s ease, background .15s ease, box-shadow .15s ease, opacity .15s ease;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    box-shadow:0 3px 12px rgba(22, 58, 35, 0.18);
+    text-decoration:none;
+    user-select:none;
+  }
+  .btn:hover{
+    background:var(--btn-hover);
+    border-color:var(--btn-hover);
+    box-shadow:0 5px 16px rgba(22, 58, 35, 0.26);
+    color:#fff;
+  }
+  .btn:active{ transform:scale(0.97); }
+  .btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+  .status-line{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-left:6px;
+  }
+  .status-line.error{ color:var(--danger); font-weight:600; }
+  .status-line.ok{ color:var(--ok); font-weight:600; }
+
+  /* Widgets - what's in the fridge*/
+  .product-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:16px;
+  }
+  .product-card{
+    background:rgba(255, 255, 255, 0.95);
+    border:1px solid var(--forest-border);
+    border-radius:var(--radius);
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    box-shadow:var(--shadow);
+    transition:transform .12s ease, box-shadow .14s ease, border-color .14s ease;
+    position:relative;
+    backdrop-filter:blur(8px);
+  }
+  .product-card:hover{
+    transform:translateY(-3px);
+    box-shadow:var(--shadow-hover);
+    border-color:rgba(22, 58, 35, 0.3);
+  }
+  .product-card.deselected{
+    opacity:0.42;
+    background:#fafaf8;
+  }
+
+  .card-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .icon-bubble{
+    width:48px;
+    height:48px;
+    border-radius:13px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:26px;
+    background:var(--forest-soft);
+    box-shadow:inset 0 1px 3px rgba(0,0,0,0.03);
+    flex-shrink:0;
+  }
+  .card-checkbox{
+    width:20px;
+    height:20px;
+    accent-color:var(--forest);
+    cursor:pointer;
+  }
+
+  .product-info{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .product-name{
+    font-size:17px;
+    font-weight:700;
+    color:var(--forest-deep);
+    text-transform:capitalize;
+    letter-spacing:-0.01em;
+  }
+  .product-meta{
+    font-size:13px;
+    font-weight:500;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .meta-tag{
+    background:var(--forest-soft);
+    padding:2px 8px;
+    border-radius:6px;
+    font-size:12px;
+    font-weight:600;
+    color:var(--forest);
+  }
+
+  /* Expiration Date Selector on Cards */
+  .expiry-control-box{
+    margin-top:auto;
+    padding-top:12px;
+    border-top:1px dashed var(--line);
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .expiry-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:11px;
+    font-weight:600;
+    color:var(--ink-soft);
+  }
+  .expiry-status-pill{
+    font-size:11px;
+    font-weight:700;
+    padding:2px 8px;
+    border-radius:6px;
+  }
+  .expiry-status-pill.fresh{ background:var(--ok-bg); color:var(--ok); }
+  .expiry-status-pill.soon{ background:var(--warn-bg); color:var(--warn); }
+  .expiry-status-pill.urgent{ background:var(--danger-bg); color:var(--danger); }
+
+  .date-picker-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .expiry-input{
+    flex:1;
+    font-family:inherit;
+    font-size:12px;
+    font-weight:600;
+    padding:6px 9px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    background:#ffffff;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .expiry-input:focus{
+    outline:2px solid var(--forest);
+    border-color:transparent;
+  }
+
+  /* Preset quick buttons */
+  .preset-row{
+    display:flex;
+    gap:4px;
+    flex-wrap:wrap;
+  }
+  .preset-btn{
+    padding:3px 7px;
+    font-size:11px;
+    font-weight:600;
+    border-radius:5px;
+    background:var(--forest-soft);
+    color:var(--forest);
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:all .1s ease;
+  }
+  .preset-btn:hover{
+    background:#d8eadc;
+  }
+  .preset-btn.active{
+    background:var(--forest);
+    color:#ffffff;
+  }
+
+  .empty-state{
+    background:rgba(255, 255, 255, 0.9);
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+    padding:44px 20px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:15px;
+    grid-column:1 / -1;
+  }
+  .empty-state span{
+    display:block;
+    font-size:36px;
+    margin-bottom:12px;
+  }
+
+  /* RECIPES SECTION */
+  .recipe-controls{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:24px;
+    flex-wrap:wrap;
+  }
+
+  .recipe-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:22px;
+  }
+  .recipe-card{
+    background:rgba(255, 255, 255, 0.95);
+    border:1px solid var(--forest-border);
+    border-radius:var(--radius);
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    box-shadow:var(--shadow);
+    transition:transform .12s ease, box-shadow .15s ease;
+    backdrop-filter:blur(8px);
+  }
+  .recipe-card:hover{
+    transform:translateY(-3px);
+    box-shadow:var(--shadow-hover);
+  }
+  .recipe-img-wrap{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/10;
+    background:#e0e8e2;
+    overflow:hidden;
+  }
+  .recipe-img-wrap img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+    transition:transform .3s ease;
+  }
+  .recipe-card:hover .recipe-img-wrap img{
+    transform:scale(1.03);
+  }
+  .match-badge{
+    position:absolute;
+    bottom:10px;
+    left:10px;
+    background:rgba(13, 36, 22, 0.92);
+    backdrop-filter:blur(4px);
+    color:#fff;
+    font-size:12px;
+    font-weight:700;
+    padding:5px 12px;
+    border-radius:999px;
+    letter-spacing:0.02em;
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+  }
+  .recipe-body{
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    flex:1;
+  }
+  .recipe-body h3{
+    font-size:18px;
+    color:var(--forest-deep);
+    line-height:1.3;
+  }
+  .recipe-uses{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.45;
+  }
+  .recipe-uses b{
+    color:var(--forest);
+    font-weight:700;
+  }
+  .recipe-action-wrap{
+    margin-top:auto;
+    padding-top:14px;
+    border-top:1px solid var(--line-subtle);
+  }
+
+  /* Modal for recipe steps */
+  .modal-backdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(13, 36, 22, 0.65);
+    backdrop-filter:blur(4px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+    padding:20px;
+  }
+  .modal-card{
+    background:#fff;
+    border-radius:22px;
+    max-width:640px;
+    width:100%;
+    max-height:85vh;
+    overflow-y:auto;
+    padding:30px;
+    position:relative;
+    box-shadow:0 24px 48px rgba(0,0,0,0.22);
+  }
+  .modal-close{
+    position:absolute;
+    top:20px;
+    right:20px;
+    background:none;
+    border:none;
+    font-size:24px;
+    cursor:pointer;
+    color:var(--ink-soft);
+    padding:4px;
+    line-height:1;
+  }
+
+  footer{
+    margin-top:72px;
+    font-size:13px;
+    color:var(--ink-soft);
+    border-top:1px solid var(--line);
+    padding-top:22px;
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+</style>
+</head>
+<body>
+
+<!--SVGs for Layered Background -->
+<svg class="botanical-bg leaf-top-right" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M40,160 C90,160 170,120 180,30 C120,40 50,80 40,160 Z" fill="#2d6e43" />
+  <path d="M40,160 C85,115 130,75 180,30" stroke="#163a23" stroke-width="3" stroke-linecap="round" />
+  <path d="M75,130 C100,120 120,110 135,95" stroke="#163a23" stroke-width="2" />
+  <path d="M100,105 C125,95 145,85 160,70" stroke="#163a23" stroke-width="2" />
+</svg>
+
+<svg class="botanical-bg leaf-bottom-left" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M160,40 C160,90 120,170 30,180 C40,120 80,50 160,40 Z" fill="#2d6e43" />
+  <path d="M160,40 C115,85 75,130 30,180" stroke="#163a23" stroke-width="3" stroke-linecap="round" />
+  <path d="M130,75 C120,100 110,120 95,135" stroke="#163a23" stroke-width="2" />
+  <path d="M105,100 C95,125 85,145 70,160" stroke="#163a23" stroke-width="2" />
+</svg>
+
+<div class="wrap">
+
+  <!-- HEADER / HERO -->
+  <header class="hero">
+    <div class="hero-titles">
+      <h1>Wasteless <span>🌱</span></h1>
+      <p>Expiring fridge food rescued as delicious dinner.</p>
+    </div>
+    <div class="hero-right">
+      <div class="status-pill" id="live-pill">
+        <span class="dot" id="live-dot"></span>
+        <span id="live-status-text">Fridge Connected</span>
+      </div>
+      <button type="button" class="btn" id="refresh-fridge-btn">
+        🔄 Refresh Fridge
+      </button>
+    </div>
+  </header>
+
+  <!-- WHAT'S IN YOUR FRIDGE -->
+  <section id="fridge-section">
+    <div class="section-head">
+      <h2>What's in your fridge</h2>
+      <span style="font-size:13px; color:var(--ink-soft);">Select items to cook with</span>
+    </div>
+
+    <div class="product-grid" id="product-grid">
+      <div class="empty-state">
+        <span>🧊</span>
+        Connecting to your smart fridge scale...
+      </div>
+    </div>
+  </section>
+
+  <!-- RECIPES SECTION -->
+  <section id="recipes-section">
+    <div class="section-head">
+      <h2>Recipes to save food</h2>
+    </div>
+
+    <div class="recipe-controls">
+      <button type="button" class="btn" id="search-recipes-btn">
+        🍳 Search Recipes
+      </button>
+      <button type="button" class="btn" id="refresh-recipes-btn" title="Discover fresh recipe ideas">
+        🔄 Refresh Recipes
+      </button>
+      <span class="status-line" id="recipe-status"></span>
+    </div>
+
+    <div class="recipe-grid" id="recipe-grid"></div>
+  </section>
+
+  <footer>
+    <div>Wasteless &bull; Smart Scale Fridge Companion</div>
+    <div>Powered by TheMealDB</div>
+  </footer>
+</div>
+
+<!-- Modal for full recipe instructions -->
+<div class="modal-backdrop" id="recipe-modal">
+  <div class="modal-card">
+    <button class="modal-close" id="modal-close">&times;</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Backend Blynk configuration (hidden from user)
+  const BLYNK_TOKEN = "cprdHUm3yu01R9SLxpSHqoRkQ4QfH8e7";
+  const BLYNK_SERVER = "blynk.cloud";
+
+  // Visual catalog matching food keywords to emoji icons & backgrounds
+  const FOOD_VISUALS = [
+    { keys: ['apple', 'apples'], icon: '🍎', bg: '#fdeeed' },
+    { keys: ['banana', 'bananas'], icon: '🍌', bg: '#fef9e7' },
+    { keys: ['orange', 'oranges', 'citrus'], icon: '🍊', bg: '#fef3e6' },
+    { keys: ['lemon', 'lemons', 'lime'], icon: '🍋', bg: '#fdfce7' },
+    { keys: ['strawberry', 'strawberries', 'berry', 'berries'], icon: '🍓', bg: '#fde8ea' },
+    { keys: ['blueberry', 'blueberries'], icon: '🫐', bg: '#eceefb' },
+    { keys: ['grape', 'grapes'], icon: '🍇', bg: '#f5ebf8' },
+    { keys: ['watermelon', 'melon'], icon: '🍉', bg: '#eef8f0' },
+    { keys: ['tomato', 'tomatoes'], icon: '🍅', bg: '#fdeeed' },
+    { keys: ['potato', 'potatoes'], icon: '🥔', bg: '#f8f4ec' },
+    { keys: ['carrot', 'carrots'], icon: '🥕', bg: '#fef2e6' },
+    { keys: ['onion', 'onions', 'garlic'], icon: '🧅', bg: '#f7f1e8' },
+    { keys: ['spinach', 'lettuce', 'salad', 'greens', 'cabbage'], icon: '🥬', bg: '#edf7ee' },
+    { keys: ['broccoli'], icon: '🥦', bg: '#edf7ee' },
+    { keys: ['cucumber', 'pickle'], icon: '🥒', bg: '#edf7ee' },
+    { keys: ['pepper', 'peppers', 'chili', 'bell pepper'], icon: '🫑', bg: '#f1f8ee' },
+    { keys: ['mushroom', 'mushrooms'], icon: '🍄', bg: '#f6f1eb' },
+    { keys: ['milk', 'cream'], icon: '🥛', bg: '#f1f7fd' },
+    { keys: ['cheese', 'cheddar', 'mozzarella', 'parmesan'], icon: '🧀', bg: '#fefae6' },
+    { keys: ['butter'], icon: '🧈', bg: '#fefae6' },
+    { keys: ['yogurt'], icon: '🥣', bg: '#f3f6fa' },
+    { keys: ['egg', 'eggs'], icon: '🥚', bg: '#fbf7ee' },
+    { keys: ['chicken', 'wings', 'breast'], icon: '🍗', bg: '#fdf4e8' },
+    { keys: ['meat', 'beef', 'steak', 'pork'], icon: '🥩', bg: '#faebeb' },
+    { keys: ['bacon', 'sausage', 'ham'], icon: '🥓', bg: '#fcedea' },
+    { keys: ['fish', 'salmon', 'tuna', 'seafood'], icon: '🐟', bg: '#edf6fc' },
+    { keys: ['bread', 'toast', 'bagel', 'bun'], icon: '🍞', bg: '#fbf4e8' },
+    { keys: ['rice'], icon: '🍚', bg: '#f8f8f8' },
+    { keys: ['pasta', 'noodle', 'noodles', 'spaghetti'], icon: '🍝', bg: '#fef9e8' },
+    { keys: ['avocado'], icon: '🥑', bg: '#eff7eb' },
+  ];
+
+  function getFoodVisual(name){
+    const lower = String(name || '').toLowerCase();
+    for (const item of FOOD_VISUALS){
+      for (const k of item.keys){
+        if (lower.includes(k)){
+          return { icon: item.icon, bg: item.bg };
+        }
+      }
+    }
+    // Generic fallback for Item 1..8
+    if (/item\s*\d+/i.test(lower)) return { icon: '📦', bg: '#f5f3ee' };
+    return { icon: '🥗', bg: '#eef6f0' };
+  }
+
+  // DOM Elements
+  const els = {
+    livePill: document.getElementById('live-pill'),
+    liveDot: document.getElementById('live-dot'),
+    liveStatusText: document.getElementById('live-status-text'),
+    productGrid: document.getElementById('product-grid'),
+    refreshFridgeBtn: document.getElementById('refresh-fridge-btn'),
+    searchRecipesBtn: document.getElementById('search-recipes-btn'),
+    refreshRecipesBtn: document.getElementById('refresh-recipes-btn'),
+    recipeStatus: document.getElementById('recipe-status'),
+    recipeGrid: document.getElementById('recipe-grid'),
+    recipeModal: document.getElementById('recipe-modal'),
+    modalContent: document.getElementById('modal-content'),
+    modalClose: document.getElementById('modal-close'),
+  };
+
+  // State
+  let products = [];
+  let isFetching = false;
+  let cachedFullRecipes = new Map();
+
+  // Load custom expiry overrides from localStorage so user-selected dates persist
+  let customExpiryDates = {};
+  try{
+    customExpiryDates = JSON.parse(localStorage.getItem('wasteless_expiry_overrides') || '{}');
+  }catch(e){}
+
+  function saveCustomExpiry(itemName, dateStr){
+    customExpiryDates[itemName.toLowerCase().trim()] = dateStr;
+    try{
+      localStorage.setItem('wasteless_expiry_overrides', JSON.stringify(customExpiryDates));
+    }catch(e){}
+  }
+
+  // Helper date functions
+  function toISODate(d){
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  function getDefaultExpiryDate(offsetDays = 7){
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    return toISODate(d);
+  }
+
+  function daysUntil(dateStr){
+    const target = new Date(dateStr);
+    if (isNaN(target)) return 7;
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    return Math.round((target - startOfToday) / 86400000);
+  }
+
+  function escapeHtml(s){
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function setStatus(msg, kind){
+    els.recipeStatus.textContent = msg || '';
+    els.recipeStatus.className = 'status-line' + (kind ? ' ' + kind : '');
+  }
+
+  // Array shuffle helper for Refresh Recipes
+  function shuffleArray(arr){
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // ==========================================
+  // PARSER: Supports V12 JSON or V2-V9 fallback
+  // ==========================================
+  function parseFridgePayload(rawJson){
+    const items = [];
+    const v12 = rawJson.V12;
+
+    function getExpiryFor(name, scaleProvidedExpiry){
+      const key = name.toLowerCase().trim();
+      if (customExpiryDates[key]) return customExpiryDates[key];
+      if (scaleProvidedExpiry && scaleProvidedExpiry.length >= 8) return scaleProvidedExpiry;
+      return getDefaultExpiryDate(7); // Default 7 days
+    }
+
+    // 1. Try V12 primary JSON stream
+    if (v12 && typeof v12 === 'string' && v12.trim() !== ''){
+      let parsed = v12.trim();
+      try { parsed = JSON.parse(parsed); } catch(e){}
+      if (typeof parsed === 'string'){
+        try { parsed = JSON.parse(parsed); } catch(e){}
+      }
+
+      if (Array.isArray(parsed)){
+        parsed.forEach(p => {
+          const name = (p.name || p.product || '').trim();
+          if (name && name !== 'None'){
+            const expiry = getExpiryFor(name, p.expiry);
+            items.push({
+              name: name,
+              count: parseInt(p.count, 10) || 1,
+              weight: parseFloat(p.weight) || 0,
+              expiry: expiry,
+              daysLeft: daysUntil(expiry),
+              selected: true
+            });
+          }
+        });
+      }
+      else if (parsed && typeof parsed === 'object'){
+        Object.entries(parsed).forEach(([key, val]) => {
+          const name = String(key || '').trim();
+          if (name && name !== 'None'){
+            const count = typeof val === 'number' ? val : (parseInt(val && val.count, 10) || 1);
+            const weight = parseFloat(val && val.weight || 0);
+            const expiry = getExpiryFor(name, null);
+            items.push({
+              name: name,
+              count: count,
+              weight: weight,
+              expiry: expiry,
+              daysLeft: daysUntil(expiry),
+              selected: true
+            });
+          }
+        });
+      }
+    }
+
+    // 2. Fallback to multi-pin V2..V9 if V12 had no valid items
+    if (!items.length){
+      for (let i = 2; i <= 9; i++){
+        const val = rawJson['V' + i];
+        if (typeof val === 'string' && val.trim() !== '' && val.trim() !== 'None'){
+          const m = val.match(/^\s*(?:(\d+)x\s+)?([^:]+?)(?::\s*([\d\.]+)\s*g?)?\s*$/i);
+          if (m){
+            const count = parseInt(m[1] || '1', 10);
+            const name = (m[2] || '').trim();
+            const weight = parseFloat(m[3] || '0');
+            if (name && name !== 'None'){
+              const expiry = getExpiryFor(name, null);
+              items.push({
+                name: name,
+                count: count,
+                weight: weight,
+                expiry: expiry,
+                daysLeft: daysUntil(expiry),
+                selected: true
+              });
+            }
+          }
+        }
+      }
+    }
+
+    return items;
+  }
+
+  // ==========================================
+  // FETCH INVENTORY FROM BLYNK
+  // ==========================================
+  async function fetchFridge(silent = false){
+    if (isFetching) return;
+    isFetching = true;
+
+    if (!silent){
+      els.refreshFridgeBtn.textContent = '🔄 Syncing...';
+      els.refreshFridgeBtn.disabled = true;
+    }
+
+    try{
+      const pins = ['V2','V3','V4','V5','V6','V7','V8','V9','V12'].join('&');
+      const url = `https://${BLYNK_SERVER}/external/api/get?token=${BLYNK_TOKEN}&${pins}`;
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      products = parseFridgePayload(data);
+
+      renderFridge();
+
+      els.liveDot.style.background = '#22c55e';
+      els.liveStatusText.textContent = `${products.length} item${products.length === 1 ? '' : 's'} in fridge`;
+
+    }catch(err){
+      console.warn('Blynk fetch issue:', err);
+      els.liveDot.style.background = '#a3a3a3';
+      els.liveStatusText.textContent = 'Scale Syncing';
+      if (!products.length){
+        els.productGrid.innerHTML = `
+          <div class="empty-state">
+            <span>🔌</span>
+            Scale is connecting... Place and scan items on the scale to start saving food.
+          </div>`;
+      }
+    }finally{
+      isFetching = false;
+      if (!silent){
+        els.refreshFridgeBtn.textContent = '🔄 Refresh Fridge';
+        els.refreshFridgeBtn.disabled = false;
+      }
+    }
+  }
+
+  // ==========================================
+  // RENDER CLEAN WIDGETS
+  // ==========================================
+  function renderFridge(){
+    els.productGrid.innerHTML = '';
+
+    if (!products.length){
+      els.productGrid.innerHTML = `
+        <div class="empty-state">
+          <span>🍎</span>
+          Your fridge scale is currently empty. Place an item on the scale and scan it with HuskyLens!
+        </div>`;
+      return;
+    }
+
+    // Sort: soonest expiring first
+    const sorted = [...products].sort((a,b) => (a.daysLeft ?? 99) - (b.daysLeft ?? 99));
+
+    sorted.forEach((p) => {
+      const visual = getFoodVisual(p.name);
+      const card = document.createElement('div');
+      card.className = 'product-card' + (p.selected ? '' : ' deselected');
+
+      // Expiry status pill
+      let expiryClass = 'fresh';
+      let expiryLabel = `${p.daysLeft}d left`;
+      if (p.daysLeft <= 1){
+        expiryClass = 'urgent';
+        expiryLabel = p.daysLeft === 0 ? 'Today!' : 'Tomorrow';
+      } else if (p.daysLeft <= 4){
+        expiryClass = 'soon';
+        expiryLabel = `${p.daysLeft}d left`;
+      }
+
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="icon-bubble">
+            ${visual.icon}
+          </div>
+          <div style="flex:1;">
+            <div class="product-name">${escapeHtml(p.name)}</div>
+            <div class="product-meta">
+              <span class="meta-tag">${p.count}x</span>
+              ${p.weight > 0 ? `<span class="meta-tag">${Math.round(p.weight)}g</span>` : ''}
+            </div>
+          </div>
+          <label style="cursor:pointer;" title="Select item for cooking">
+            <input type="checkbox" class="card-checkbox" ${p.selected ? 'checked' : ''}>
+          </label>
+        </div>
+
+        <!-- Clean Expiration Control Box -->
+        <div class="expiry-control-box">
+          <div class="expiry-header">
+            <span>Expires</span>
+            <span class="expiry-status-pill ${expiryClass}">${expiryLabel}</span>
+          </div>
+          <div class="date-picker-row">
+            <input type="date" class="expiry-input" value="${p.expiry}">
+          </div>
+          <div class="preset-row">
+            <button type="button" class="preset-btn ${p.daysLeft === 3 ? 'active' : ''}" data-days="3">3d</button>
+            <button type="button" class="preset-btn ${p.daysLeft === 5 ? 'active' : ''}" data-days="5">5d</button>
+            <button type="button" class="preset-btn ${p.daysLeft === 7 ? 'active' : ''}" data-days="7" title="Default 7 days">7d (default)</button>
+            <button type="button" class="preset-btn ${p.daysLeft === 14 ? 'active' : ''}" data-days="14">14d</button>
+          </div>
+        </div>`;
+
+      // Checkbox event
+      const chk = card.querySelector('.card-checkbox');
+      chk.addEventListener('change', () => {
+        p.selected = chk.checked;
+        card.classList.toggle('deselected', !p.selected);
+      });
+
+      // Date picker event
+      const dateInput = card.querySelector('.expiry-input');
+      dateInput.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val){
+          p.expiry = val;
+          p.daysLeft = daysUntil(val);
+          saveCustomExpiry(p.name, val);
+          renderFridge();
+        }
+      });
+
+      // Preset buttons event (3d, 5d, 7d, 14d)
+      card.querySelectorAll('.preset-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const dCount = parseInt(btn.getAttribute('data-days'), 10);
+          const newDate = getDefaultExpiryDate(dCount);
+          p.expiry = newDate;
+          p.daysLeft = daysUntil(newDate);
+          saveCustomExpiry(p.name, newDate);
+          renderFridge();
+        });
+      });
+
+      els.productGrid.appendChild(card);
+    });
+  }
+
+  // RECIPES SEARCH & REFRESH (TheMealDB)
+
+  function cleanItemForSearch(name){
+    let s = String(name || '').toLowerCase().trim();
+    s = s.replace(/^(organic|fresh|raw|cooked)\s+/g, '');
+    return s;
+  }
+
+  function getIngredientVariations(word){
+    const list = [word];
+    if (word.endsWith('s') && word.length > 3){
+      list.push(word.slice(0, -1)); // apples -> apple
+    } else {
+      list.push(word + 's'); // apple -> apples
+    }
+    if (word === 'tomato') list.push('tomatoes');
+    if (word === 'tomatoes') list.push('tomato');
+    if (word === 'potato') list.push('potatoes');
+    if (word === 'potatoes') list.push('potato');
+    if (word === 'egg') list.push('eggs');
+    if (word === 'eggs') list.push('egg');
+    return [...new Set(list)];
+  }
+
+  async function searchCandidateMeals(rawName){
+    const clean = cleanItemForSearch(rawName);
+    const variations = getIngredientVariations(clean);
+    const foundMeals = [];
+
+    for (const v of variations){
+      try{
+        const res = await fetch(`https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(v)}`);
+        const json = await res.json();
+        if (json.meals && Array.isArray(json.meals)){
+          foundMeals.push(...json.meals);
+        }
+      }catch(e){}
+    }
+
+    // Fallback search by name if ingredient filter yielded nothing
+    if (!foundMeals.length){
+      try{
+        const res = await fetch(`https://www.themealdb.com/api/json/v1/1/search.php?s=${encodeURIComponent(clean)}`);
+        const json = await res.json();
+        if (json.meals && Array.isArray(json.meals)){
+          foundMeals.push(...json.meals);
+        }
+      }catch(e){}
+    }
+
+    return foundMeals;
+  }
+
+  async function getMealDetails(idMeal){
+    if (cachedFullRecipes.has(idMeal)) return cachedFullRecipes.get(idMeal);
+    try{
+      const res = await fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${idMeal}`);
+      const json = await res.json();
+      if (json.meals && json.meals[0]){
+        cachedFullRecipes.set(idMeal, json.meals[0]);
+        return json.meals[0];
+      }
+    }catch(e){}
+    return null;
+  }
+
+  function extractIngredients(meal){
+    const list = [];
+    for (let i = 1; i <= 20; i++){
+      const ing = meal['strIngredient' + i];
+      if (ing && ing.trim()){
+        list.push(ing.trim().toLowerCase());
+      }
+    }
+    return list;
+  }
+
+  async function searchRecipes(isRefresh = false){
+    const selected = products.filter(p => p.selected && !/item\s*\d+/i.test(p.name));
+    
+    if (!selected.length){
+      setStatus('Please select at least one named food item from your fridge.', 'error');
+      return;
+    }
+
+    const activeBtn = isRefresh ? els.refreshRecipesBtn : els.searchRecipesBtn;
+    activeBtn.disabled = true;
+    activeBtn.textContent = isRefresh ? '🔄 Refreshing...' : '🔍 Finding recipes...';
+    setStatus(`Searching recipes for ${selected.map(p => p.name).join(', ')}…`);
+    els.recipeGrid.innerHTML = '';
+
+    try{
+      const candidateMap = new Map();
+
+      for (const p of selected){
+        const meals = await searchCandidateMeals(p.name);
+        meals.forEach(m => {
+          if (!candidateMap.has(m.idMeal)){
+            candidateMap.set(m.idMeal, m);
+          }
+        });
+      }
+
+      if (!candidateMap.size){
+        setStatus(`No direct recipes found for "${selected.map(p => p.name).join(', ')}". Try adding another item!`, 'error');
+        return;
+      }
+
+      let allCandidateIds = [...candidateMap.keys()];
+
+      // If refreshing, shuffle candidate pool to uncover new recipe ideas!
+      if (isRefresh){
+        allCandidateIds = shuffleArray(allCandidateIds);
+      }
+
+      const ids = allCandidateIds.slice(0, 16);
+      const detailPromises = ids.map(id => getMealDetails(id));
+      const details = (await Promise.all(detailPromises)).filter(Boolean);
+
+      const fridgeNames = selected.map(p => ({
+        original: p.name,
+        variations: getIngredientVariations(cleanItemForSearch(p.name))
+      }));
+
+      // Calculate matches
+      const scoredRecipes = details.map(meal => {
+        const recipeIngs = extractIngredients(meal);
+        const mealTitle = (meal.strMeal || '').toLowerCase();
+
+        const matchedFridgeItems = [];
+
+        fridgeNames.forEach(fn => {
+          const matches = recipeIngs.some(ing => fn.variations.some(v => ing.includes(v) || v.includes(ing))) ||
+                          fn.variations.some(v => mealTitle.includes(v));
+          if (matches){
+            matchedFridgeItems.push(fn.original);
+          }
+        });
+
+        return {
+          meal,
+          matchedCount: matchedFridgeItems.length,
+          matchedItems: matchedFridgeItems
+        };
+      });
+
+      const valid = scoredRecipes.filter(r => r.matchedCount > 0);
+
+      // CRUCIAL: Sort strictly by how many items from the fridge each recipe uses (descending)
+      valid.sort((a, b) => b.matchedCount - a.matchedCount);
+
+      if (!valid.length){
+        setStatus('Found recipes, but none matched closely enough. Try with additional items.', 'error');
+        return;
+      }
+
+      const statusMsg = isRefresh 
+        ? `Refreshed with ${valid.length} fresh recipe ideas — sorted by most fridge items used!`
+        : `Found ${valid.length} recipe${valid.length === 1 ? '' : 's'} — sorted by most fridge items used!`;
+      
+      setStatus(statusMsg, 'ok');
+
+      valid.forEach(r => {
+        els.recipeGrid.appendChild(renderRecipeCard(r));
+      });
+
+    }catch(err){
+      console.error(err);
+      setStatus('Could not reach TheMealDB. Please check your internet connection.', 'error');
+    }finally{
+      els.searchRecipesBtn.disabled = false;
+      els.searchRecipesBtn.textContent = '🍳 Search Recipes';
+      els.refreshRecipesBtn.disabled = false;
+      els.refreshRecipesBtn.textContent = '🔄 Refresh Recipes';
+    }
+  }
+
+  function renderRecipeCard(r){
+    const meal = r.meal;
+    const card = document.createElement('div');
+    card.className = 'recipe-card';
+
+    const matchText = r.matchedCount === 1 
+      ? `Uses 1 item from your fridge` 
+      : `Uses ${r.matchedCount} items from your fridge`;
+
+    const fridgeListHtml = r.matchedItems.map(item => `<b>${escapeHtml(item)}</b>`).join(', ');
+
+    card.innerHTML = `
+      <div class="recipe-img-wrap">
+        <img src="${meal.strMealThumb}" alt="${escapeHtml(meal.strMeal)}" loading="lazy">
+        <span class="match-badge">⭐ ${matchText}</span>
+      </div>
+      <div class="recipe-body">
+        <h3>${escapeHtml(meal.strMeal)}</h3>
+        <div class="recipe-uses">
+          From your fridge: ${fridgeListHtml}
+        </div>
+        <div class="recipe-action-wrap">
+          <button type="button" class="btn view-btn" style="width:100%; justify-content:center;">
+            View Recipe Instructions &rarr;
+          </button>
+        </div>
+      </div>`;
+
+    card.querySelector('.view-btn').addEventListener('click', () => {
+      openRecipeModal(meal, r.matchedItems);
+    });
+
+    return card;
+  }
+
+  // ==========================================
+  // MODAL: Recipe Details
+  // ==========================================
+  function openRecipeModal(meal, matchedFridgeItems){
+    const ings = [];
+    for (let i = 1; i <= 20; i++){
+      const ing = meal['strIngredient' + i];
+      const measure = meal['strMeasure' + i];
+      if (ing && ing.trim()){
+        const isFromFridge = matchedFridgeItems.some(m => ing.toLowerCase().includes(m.toLowerCase()));
+        ings.push(`<li style="${isFromFridge ? 'font-weight:700; color:var(--forest);' : ''}">${escapeHtml(measure ? measure + ' ' : '')}${escapeHtml(ing)} ${isFromFridge ? '✨ (in fridge)' : ''}</li>`);
+      }
+    }
+
+    els.modalContent.innerHTML = `
+      <div style="display:flex; gap:16px; align-items:center; margin-bottom:18px;">
+        <img src="${meal.strMealThumb}" alt="${escapeHtml(meal.strMeal)}" style="width:84px; height:84px; border-radius:14px; object-fit:cover;">
+        <div>
+          <h2 style="font-size:22px; margin-bottom:4px;">${escapeHtml(meal.strMeal)}</h2>
+          <div style="font-size:13px; color:var(--ink-soft);">${escapeHtml(meal.strCategory || '')} &bull; ${escapeHtml(meal.strArea || '')}</div>
+        </div>
+      </div>
+      <h3 style="font-size:16px; margin:16px 0 8px;">Ingredients</h3>
+      <ul style="padding-left:20px; font-size:14px; line-height:1.6; margin-bottom:20px;">
+        ${ings.join('')}
+      </ul>
+      <h3 style="font-size:16px; margin:16px 0 8px;">Instructions</h3>
+      <div style="font-size:14px; line-height:1.7; color:#333; white-space:pre-line;">
+        ${escapeHtml(meal.strInstructions || 'No instructions provided.')}
+      </div>
+      ${meal.strSource ? `<div style="margin-top:22px; font-size:13px;"><a href="${meal.strSource}" target="_blank" rel="noopener" style="color:var(--forest); font-weight:600;">Original Recipe Link &rarr;</a></div>` : ''}
+    `;
+
+    els.recipeModal.style.display = 'flex';
+  }
+
+  els.modalClose.addEventListener('click', () => { els.recipeModal.style.display = 'none'; });
+  els.recipeModal.addEventListener('click', (e) => {
+    if (e.target === els.recipeModal) els.recipeModal.style.display = 'none';
+  });
+
+  // Event Listeners
+  els.refreshFridgeBtn.addEventListener('click', () => fetchFridge(false));
+  els.searchRecipesBtn.addEventListener('click', () => searchRecipes(false));
+  els.refreshRecipesBtn.addEventListener('click', () => searchRecipes(true));
+
+  // Background auto-refresh every 10 seconds
+  setInterval(() => {
+    if (!document.hidden){
+      fetchFridge(true);
+    }
+  }, 10000);
+
+  // Initial load
+  fetchFridge(false);
+
+})();
+</script>
+</body>
+</html>
